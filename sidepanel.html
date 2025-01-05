@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>聊天侧边栏</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+    
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 15px;
+      flex-shrink: 0;
+    }
+    
+    .member-list {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      overflow-y: auto;
+      margin-bottom: 15px;
+      max-height: 200px;
+      flex-shrink: 0;
+    }
+    
+    .member-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .member-list::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+    
+    .member-list::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 3px;
+    }
+    
+    .member-list::-webkit-scrollbar-thumb:hover {
+      background: #666;
+    }
+    
+    .chat-section {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      min-height: 0;
+    }
+    
+    .chat-container {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      overflow-y: auto;
+      flex-grow: 1;
+      min-height: 0;
+    }
+    
+    .member-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .member-item:hover {
+      background: #f5f5f5;
+    }
+    
+    .member-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    
+    .member-name {
+      font-size: 14px;
+      color: #333;
+    }
+  </style>
+  <script src="sidepanel.js" defer></script>
+</head>
+<body>
+  <div class="panel-header">
+    <h1>聊天面板</h1>
+    <span id="onlineCount">在线: 0</span>
+  </div>
+  <div class="member-list" id="memberList">
+    <!-- 成员列表将由 JavaScript 动态生成 -->
+  </div>
+  <div class="chat-section">
+    <div class="chat-container">
+      <p>这里是聊天内容区域</p>
+    </div>
+  </div>
+</body>
+</html> 
