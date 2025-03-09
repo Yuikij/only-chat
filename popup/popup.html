@@ -4,19 +4,40 @@
   <meta charset="UTF-8">
   <title>Only Chat</title>
   <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
 </head>
 <body>
   <div class="container">
-    <h1>Only Chat</h1>
-    <button id="toggleChat">打开聊天</button>
-    <div class="danmu-controls">
-      <button id="toggleDanmu">打开弹幕</button>
-      <select id="danmuColor">
-        <option value="white">白色弹幕</option>
-        <option value="black">黑色弹幕</option>
-      </select>
+    <div class="header">
+      <h1>Only Chat</h1>
+    </div>
+    <div class="content">
+      <button id="toggleChat" class="primary-btn">
+        <span class="btn-icon">💬</span>
+        <span class="btn-text">打开聊天</span>
+      </button>
+      
+      <div class="divider">
+        <span>弹幕设置</span>
+      </div>
+      
+      <div class="danmu-controls">
+        <button id="toggleDanmu" class="secondary-btn">
+          <span class="btn-icon">📺</span>
+          <span class="btn-text">打开弹幕</span>
+        </button>
+        <div class="select-wrapper">
+          <select id="danmuColor" class="styled-select">
+            <option value="white">白色弹幕</option>
+            <option value="black">黑色弹幕</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <div class="brand">Only Chat</div>
     </div>
   </div>
   <script src="popup.js"></script>
 </body>
-</html> 
+</html>
