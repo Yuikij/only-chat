@@ -1,8 +1,43 @@
 document.addEventListener('DOMContentLoaded', function() {
   const toggleButton = document.getElementById('toggleChat');
-  const danmuButton = document.getElementById('toggleDanmu');
+  const danmuToggle = document.getElementById('toggleDanmu');
   const danmuColor = document.getElementById('danmuColor');
+  const opacitySlider = document.getElementById('opacitySlider');
+  const opacityValue = document.getElementById('opacityValue');
   let danmuEnabled = false;
+  
+  // 在弹出面板打开时获取当前弹幕状态
+  async function getCurrentDanmuStatus() {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab) {
+        // 向content脚本发送获取当前状态的请求
+        chrome.tabs.sendMessage(tab.id, { action: 'getDanmuStatus' }, (response) => {
+          if (response && chrome.runtime.lastError === undefined) {
+            // 更新UI以反映当前状态
+            danmuEnabled = response.enabled;
+            danmuToggle.checked = danmuEnabled;
+            
+            // 更新颜色选择
+            if (response.color) {
+              danmuColor.value = response.color;
+            }
+            
+            // 更新透明度滑块
+            if (response.opacity !== undefined) {
+              const opacityPercentage = Math.round(response.opacity * 100);
+              opacitySlider.value = opacityPercentage;
+              opacityValue.textContent = `${opacityPercentage}%`;
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error getting danmu status:', error);
+    }
+  }
+  
+  getCurrentDanmuStatus();
   
   // 添加按钮点击波纹效果
   const addRippleEffect = (button) => {
@@ -28,7 +63,6 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 为按钮添加波纹效果
   addRippleEffect(toggleButton);
-  addRippleEffect(danmuButton);
   
   toggleButton.addEventListener('click', async () => {
     // 打开侧边栏
@@ -48,17 +82,16 @@ document.addEventListener('DOMContentLoaded', function() {
     window.close();
   });
 
-  // 弹幕开关控制 - 优化响应速度
-  danmuButton.addEventListener('click', () => {
-    // 立即更新UI，提供即时反馈
-    danmuEnabled = !danmuEnabled;
-    const btnText = danmuButton.querySelector('.btn-text');
-    btnText.textContent = danmuEnabled ? '关闭弹幕' : '打开弹幕';
+  // 弹幕开关控制 - 使用新的开关控件
+  danmuToggle.addEventListener('change', () => {
+    // 获取开关状态
+    danmuEnabled = danmuToggle.checked;
     
     // 添加微交互效果
-    danmuButton.classList.add('btn-clicked');
+    const switchParent = danmuToggle.parentElement;
+    switchParent.classList.add('switch-clicked');
     setTimeout(() => {
-      danmuButton.classList.remove('btn-clicked');
+      switchParent.classList.remove('switch-clicked');
     }, 300);
     
     // 异步处理消息发送，不阻塞UI更新
@@ -69,14 +102,15 @@ document.addEventListener('DOMContentLoaded', function() {
           await chrome.tabs.sendMessage(tab.id, { 
             action: 'toggleDanmu',
             enabled: danmuEnabled,
-            color: danmuColor.value
+            color: danmuColor.value,
+            opacity: opacitySlider.value / 100
           });
         }
       } catch (error) {
         console.error('Error:', error);
         // 如果发生错误，恢复UI状态
         danmuEnabled = !danmuEnabled;
-        btnText.textContent = danmuEnabled ? '关闭弹幕' : '打开弹幕';
+        danmuToggle.checked = danmuEnabled;
       }
     })();
   });
@@ -92,19 +126,34 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 异步处理消息发送
     if (danmuEnabled) {
-      (async () => {
-        try {
-          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-          if (tab) {
-            await chrome.tabs.sendMessage(tab.id, { 
-              action: 'updateDanmuColor',
-              color: danmuColor.value
-            });
-          }
-        } catch (error) {
-          console.error('Error:', error);
-        }
-      })();
+      updateDanmuSettings();
     }
   });
+  
+  // 透明度滑块控制
+  opacitySlider.addEventListener('input', () => {
+    // 更新显示的值
+    opacityValue.textContent = `${opacitySlider.value}%`;
+    
+    // 如果弹幕已启用，实时更新设置
+    if (danmuEnabled) {
+      updateDanmuSettings();
+    }
+  });
+  
+  // 统一更新弹幕设置的函数
+  async function updateDanmuSettings() {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab) {
+        await chrome.tabs.sendMessage(tab.id, { 
+          action: 'updateDanmuSettings',
+          color: danmuColor.value,
+          opacity: opacitySlider.value / 100
+        });
+      }
+    } catch (error) {
+      console.error('Error updating danmu settings:', error);
+    }
+  }
 });

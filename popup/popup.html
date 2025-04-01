@@ -5,15 +5,17 @@
   <title>Only Chat</title>
   <link rel="stylesheet" href="popup.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="container">
     <div class="header">
       <h1>Only Chat</h1>
+      <div class="header-badge">v1.0</div>
     </div>
     <div class="content">
       <button id="toggleChat" class="primary-btn">
-        <span class="btn-icon">💬</span>
+        <span class="btn-icon"><i class="fas fa-comments"></i></span>
         <span class="btn-text">打开聊天</span>
       </button>
       
@@ -22,20 +24,37 @@
       </div>
       
       <div class="danmu-controls">
-        <button id="toggleDanmu" class="secondary-btn">
-          <span class="btn-icon">📺</span>
-          <span class="btn-text">打开弹幕</span>
-        </button>
-        <div class="select-wrapper">
-          <select id="danmuColor" class="styled-select">
-            <option value="white">白色弹幕</option>
-            <option value="black">黑色弹幕</option>
-          </select>
+        <div class="toggle-control">
+          <label class="toggle-label">弹幕显示</label>
+          <label class="switch">
+            <input type="checkbox" id="toggleDanmu">
+            <span class="slider round"></span>
+          </label>
+        </div>
+        
+        <div class="control-group">
+          <label class="control-label">弹幕颜色</label>
+          <div class="select-wrapper">
+            <select id="danmuColor" class="styled-select">
+              <option value="white">白色弹幕</option>
+              <option value="black">黑色弹幕</option>
+              <option value="gradient">渐变色弹幕</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="control-group">
+          <label class="control-label">弹幕透明度</label>
+          <div class="slider-container">
+            <input type="range" min="0" max="100" value="80" class="range-slider" id="opacitySlider">
+            <div class="slider-value"><span id="opacityValue">80%</span></div>
+          </div>
         </div>
       </div>
     </div>
     <div class="footer">
       <div class="brand">Only Chat</div>
+      <div class="version">极简聊天 · 随时随地</div>
     </div>
   </div>
   <script src="popup.js"></script>

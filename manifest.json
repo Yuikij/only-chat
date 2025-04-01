@@ -19,7 +19,8 @@
   "permissions": [
     "sidePanel",
     "tabs",
-    "contextMenus"
+    "contextMenus",
+    "storage"
   ],
   "content_scripts": [
     {
@@ -34,4 +35,4 @@
   "background": {
     "service_worker": "background.js"
   }
-} 
+}

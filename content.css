@@ -3,38 +3,70 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 200px;
+  height: 100vh; /* 修改为100vh，覆盖整个视口高度 */
   pointer-events: none;
   z-index: 9999;
+  overflow: hidden;
 }
 
 .danmu {
   position: absolute;
   white-space: nowrap;
-  font-size: 20px;
-  opacity: 0.8;
-  animation: danmu-move 15s linear;
+  font-size: 18px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  opacity: 0;
+  animation: danmu-move 25s cubic-bezier(0.25, 0.1, 0.25, 1), danmu-fade 0.8s ease-in-out;
   left: 100%;
   width: max-content;
+  padding: 6px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.2px;
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .danmu.white {
   color: white;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .danmu.black {
   color: black;
-  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.danmu.gradient {
+  background: linear-gradient(90deg, #4776E6, #8E54E9);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 @keyframes danmu-move {
   from {
     left: 100%;
+    transform: translateX(0);
   }
   to {
     left: -100%;
+    transform: translateX(-10px);
   }
+}
+
+@keyframes danmu-fade {
+  0% { opacity: 0; transform: scale(0.95); }
+  15% { opacity: 0.95; transform: scale(1.02); }
+  20% { opacity: 0.95; transform: scale(1); }
+  100% { opacity: 0.95; }
 }
 
 .comment-dialog {
@@ -42,24 +74,39 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff, #f9fafc);
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
   z-index: 10000;
-  width: 400px;
+  width: 420px;
+  animation: dialog-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+@keyframes dialog-appear {
+  from { opacity: 0; transform: translate(-50%, -48%) scale(0.96); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
 .dialog-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 18px;
+  position: relative;
 }
 
 .dialog-header h3 {
   margin: 0;
   color: #333;
+  font-size: 18px;
+  font-weight: 600;
+  background: linear-gradient(90deg, #4776E6, #8E54E9);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.3px;
 }
 
 .close-btn {
@@ -68,65 +115,113 @@
   font-size: 20px;
   cursor: pointer;
   color: #666;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #333;
+  transform: rotate(90deg);
 }
 
 .selected-text {
-  background: #f5f5f5;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 10px;
-  font-size: 14px;
-  color: #666;
+  background: rgba(71, 118, 230, 0.05);
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  font-size: 15px;
+  color: #555;
+  border-left: 3px solid rgba(71, 118, 230, 0.3);
+  line-height: 1.5;
 }
 
 .dialog-body textarea {
   width: 100%;
-  height: 100px;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  height: 120px;
+  padding: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
   resize: none;
-  margin-bottom: 15px;
+  margin-bottom: 18px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  color: #333;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.dialog-body textarea:focus {
+  outline: none;
+  border-color: #4776E6;
+  box-shadow: 0 0 0 3px rgba(71, 118, 230, 0.15);
 }
 
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
 }
 
 .dialog-footer button {
-  padding: 6px 12px;
-  border-radius: 4px;
+  padding: 10px 18px;
+  border-radius: 10px;
   cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
 .cancel-btn {
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-  color: #666;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #555;
+}
+
+.cancel-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
 }
 
 .submit-btn {
-  background: #4CAF50;
+  background: linear-gradient(90deg, #4776E6, #8E54E9);
   border: none;
   color: white;
+  box-shadow: 0 4px 10px rgba(71, 118, 230, 0.2);
 }
 
 .submit-btn:hover {
-  background: #45a049;
+  background: linear-gradient(90deg, #3d68d8, #7e48d6);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(71, 118, 230, 0.25);
+}
+
+.dialog-footer button:active {
+  transform: translateY(1px);
 }
 
 /* 被评论文本的样式 */
 .commented-text {
-  background-color: rgba(255, 255, 0, 0.3);
+  background: linear-gradient(120deg, rgba(71, 118, 230, 0.1), rgba(142, 84, 233, 0.1));
   cursor: pointer;
-  padding: 0 2px;
-  border-radius: 2px;
+  padding: 0 3px;
+  border-radius: 3px;
+  position: relative;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(71, 118, 230, 0.3);
 }
 
 .commented-text:hover {
-  background-color: rgba(255, 255, 0, 0.5);
+  background: linear-gradient(120deg, rgba(71, 118, 230, 0.15), rgba(142, 84, 233, 0.15));
+  border-bottom-style: solid;
 }
 
 /* 评论列表对话框样式 */
@@ -135,52 +230,76 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff, #f9fafc);
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
   z-index: 10000;
-  width: 400px;
+  width: 420px;
   max-height: 80vh;
   overflow-y: auto;
+  animation: dialog-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.03);
 }
 
 .original-text {
-  background: #f5f5f5;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 15px;
+  background: rgba(71, 118, 230, 0.05);
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 18px;
   font-style: italic;
-  color: #666;
+  color: #555;
+  border-left: 3px solid rgba(71, 118, 230, 0.3);
+  line-height: 1.5;
+  font-size: 15px;
 }
 
 .comments-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
 .comment-item {
-  padding: 10px;
-  border-radius: 4px;
+  padding: 16px;
+  border-radius: 12px;
   background: #f9f9f9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.comment-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .comment-item.white {
-  border-left: 4px solid #fff;
-  background: rgba(255, 255, 255, 0.1);
+  border-left: 4px solid rgba(255, 255, 255, 0.8);
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
 }
 
 .comment-item.black {
-  border-left: 4px solid #000;
-  background: rgba(0, 0, 0, 0.05);
+  border-left: 4px solid rgba(0, 0, 0, 0.8);
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.02));
 }
 
 .comment-content {
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+  line-height: 1.5;
+  font-size: 15px;
+  color: #333;
 }
 
 .comment-time {
-  font-size: 12px;
-  color: #999;
-} 
+  font-size: 13px;
+  color: #888;
+  display: flex;
+  align-items: center;
+}
+
+.comment-time::before {
+  content: '•';
+  margin-right: 5px;
+  opacity: 0.5;
+}
