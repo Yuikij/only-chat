@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+    <!-- 背景圆形 -->
+    <circle cx="64" cy="64" r="60" fill="#4A90E2"/>
+    
+    <!-- 对话气泡 -->
+    <path d="M40 40h48c4.4 0 8 3.6 8 8v32c0 4.4-3.6 8-8 8H64l-12 12V88H40c-4.4 0-8-3.6-8-8V48c0-4.4 3.6-8 8-8z" 
+          fill="white"/>
+    
+    <!-- 弹幕线条 -->
+    <path d="M48 56h32M48 64h24M48 72h32" 
+          stroke="#4A90E2" 
+          stroke-width="4" 
+          stroke-linecap="round"/>
+</svg> 
