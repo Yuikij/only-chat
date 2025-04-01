@@ -107,13 +107,16 @@ function manageTextOverlap(newText, overlappingTexts) {
 
 // 获取与文本相关的所有评论，包括重叠评论
 function getAllRelatedComments(text) {
-  const allComments = [];
+  // 使用Map来确保每条评论只添加一次，使用时间戳作为唯一键
+  const commentMap = new Map();
   
   // 先获取文本自身的评论
   if (commentStore.has(text)) {
     const commentData = commentStore.get(text);
     if (commentData && commentData.comments) {
-      allComments.push(...commentData.comments);
+      for (const comment of commentData.comments) {
+        commentMap.set(comment.timestamp, comment);
+      }
     }
   }
   
@@ -123,7 +126,9 @@ function getAllRelatedComments(text) {
       if (commentStore.has(relatedText)) {
         const commentData = commentStore.get(relatedText);
         if (commentData && commentData.comments) {
-          allComments.push(...commentData.comments);
+          for (const comment of commentData.comments) {
+            commentMap.set(comment.timestamp, comment);
+          }
         }
       }
     }
@@ -134,15 +139,20 @@ function getAllRelatedComments(text) {
     if (subTexts.has(text) && commentStore.has(superText)) {
       const commentData = commentStore.get(superText);
       if (commentData && commentData.comments) {
-        allComments.push(...commentData.comments);
+        for (const comment of commentData.comments) {
+          commentMap.set(comment.timestamp, comment);
+        }
       }
     }
   }
   
-  // 按时间排序
-  return allComments.sort((a, b) => 
+  // 将Map转换为数组并按时间排序
+  const allComments = Array.from(commentMap.values()).sort((a, b) => 
     new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   );
+  
+  console.log(`获取到 ${allComments.length} 条不重复评论，关联文本: "${text}"`);
+  return allComments;
 }
 
 // 添加必要的CSS样式
@@ -965,10 +975,15 @@ function saveComment(text, comment, domPath, url) {
   const overlappingTexts = findOverlappingCommentedTexts(text);
   const mergedText = manageTextOverlap(text, overlappingTexts);
   
+  // 生成唯一ID
+  const commentId = generateUniqueId();
+  const timestamp = new Date().toISOString();
+  
   // 创建新评论
   const newComment = {
+    id: commentId,
     comment,
-    timestamp: new Date().toISOString(),
+    timestamp: timestamp,
     color: currentColor,
     originalText: text // 保存原始选中的文本
   };
@@ -980,7 +995,16 @@ function saveComment(text, comment, domPath, url) {
       comments: []
     });
   }
-  commentStore.get(mergedText).comments.push(newComment);
+  
+  // 检查是否已存在相同内容和时间的评论（防止重复添加）
+  const existingCommentIndex = commentStore.get(mergedText).comments.findIndex(
+    c => c.comment === comment && c.timestamp === timestamp
+  );
+  
+  if (existingCommentIndex === -1) {
+    // 如果不存在相同评论，才添加
+    commentStore.get(mergedText).comments.push(newComment);
+  }
   
   // 保存到localStorage
   chrome.storage.local.get(['comments'], (result) => {
@@ -992,8 +1016,15 @@ function saveComment(text, comment, domPath, url) {
     );
     
     if (existingCommentIndex !== -1) {
-      // 已存在，添加新评论
-      comments[existingCommentIndex].comments.push(newComment);
+      // 已存在该文本的评论列表，检查是否已有相同内容的评论
+      const sameCommentExists = comments[existingCommentIndex].comments.some(
+        c => c.id === commentId || (c.comment === comment && c.timestamp === timestamp)
+      );
+      
+      if (!sameCommentExists) {
+        // 如果没有相同评论，才添加新评论
+        comments[existingCommentIndex].comments.push(newComment);
+      }
     } else {
       // 不存在，创建新条目
       comments.push({
@@ -1017,6 +1048,11 @@ function saveComment(text, comment, domPath, url) {
   });
   
   return mergedText; // 返回合并后的文本，用于高亮显示
+}
+
+// 生成唯一ID
+function generateUniqueId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 }
 
 // 高亮被评论的文本
@@ -1053,7 +1089,7 @@ function showCommentList(text) {
     return; // 如果点击同一个元素，只是关闭弹窗不重新打开
   }
   
-  // 获取所有相关评论，包括重叠文本的评论
+  // 获取所有相关评论，包括重叠文本的评论（已去重）
   const allComments = getAllRelatedComments(text);
   
   if (allComments.length === 0) {
@@ -1066,20 +1102,13 @@ function showCommentList(text) {
   
   const content = `
     <div class="dialog-header">
-      <h3>评论列表</h3>
+      <h3>评论列表 (${allComments.length}条)</h3>
       <button class="close-btn">&times;</button>
     </div>
     <div class="dialog-body">
       <div class="original-text">${text}</div>
       <div class="comments-container">
-        ${allComments.length > 0 ? allComments.map(c => `
-          <div class="comment-item ${c.color}">
-            <div class="comment-content">${c.comment}</div>
-            ${c.originalText && c.originalText !== text ? 
-              `<div class="original-selection">原始选中: "${c.originalText}"</div>` : ''}
-            <div class="comment-time">${new Date(c.timestamp).toLocaleString()}</div>
-          </div>
-        `).join('') : '<div class="no-comments">暂无评论</div>'}
+        ${renderCommentItems(allComments, text)}
       </div>
       
       <div class="reply-section">
@@ -1152,14 +1181,11 @@ function showCommentList(text) {
       // 更新评论列表
       const updatedComments = getAllRelatedComments(text);
       const commentsContainer = commentListDialog.querySelector('.comments-container');
-      commentsContainer.innerHTML = updatedComments.map(c => `
-        <div class="comment-item ${c.color}">
-          <div class="comment-content">${c.comment}</div>
-          ${c.originalText && c.originalText !== text ? 
-            `<div class="original-selection">原始选中: "${c.originalText}"</div>` : ''}
-          <div class="comment-time">${new Date(c.timestamp).toLocaleString()}</div>
-        </div>
-      `).join('');
+      commentsContainer.innerHTML = renderCommentItems(updatedComments, text);
+      
+      // 更新评论数量显示
+      const headerTitle = commentListDialog.querySelector('.dialog-header h3');
+      headerTitle.textContent = `评论列表 (${updatedComments.length}条)`;
       
       // 清空输入框
       replyTextarea.value = '';
@@ -1185,6 +1211,34 @@ function showCommentList(text) {
   commentListDialog.addEventListener('click', (event) => {
     event.stopPropagation();
   });
+}
+
+// 渲染评论项目
+function renderCommentItems(comments, currentText) {
+  if (!comments || comments.length === 0) {
+    return '<div class="no-comments">暂无评论</div>';
+  }
+  
+  // 确保每个评论只渲染一次（使用ID去重）
+  const uniqueCommentIds = new Set();
+  const uniqueComments = [];
+  
+  for (const comment of comments) {
+    const commentId = comment.id || `${comment.comment}_${comment.timestamp}`;
+    if (!uniqueCommentIds.has(commentId)) {
+      uniqueCommentIds.add(commentId);
+      uniqueComments.push(comment);
+    }
+  }
+  
+  return uniqueComments.map(c => `
+    <div class="comment-item ${c.color}">
+      <div class="comment-content">${c.comment}</div>
+      ${c.originalText && c.originalText !== currentText ? 
+        `<div class="original-selection">原始选中: "${c.originalText}"</div>` : ''}
+      <div class="comment-time">${new Date(c.timestamp).toLocaleString()}</div>
+    </div>
+  `).join('');
 }
 
 // 监听来自popup和background的消息
