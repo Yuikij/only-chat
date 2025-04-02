@@ -450,15 +450,14 @@ function injectStyles() {
     .danmu {
       position: absolute;
       white-space: nowrap;
-      color: white;
       font-size: 20px;
       font-weight: bold;
       padding: 3px 8px;
       border-radius: 4px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-      animation: danmu-move 8s linear forwards;
+      animation: danmu-move 15s linear forwards;
       right: -100%;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      background: none !important;
+      box-shadow: none !important;
     }
     
     @keyframes danmu-move {
@@ -466,13 +465,51 @@ function injectStyles() {
       to { transform: translateX(-200vw); }
     }
     
-    .danmu.white { background-color: rgba(255, 255, 255, 0.8); color: #333; }
-    .danmu.red { background-color: rgba(255, 0, 0, 0.8); }
-    .danmu.blue { background-color: rgba(0, 115, 255, 0.8); }
-    .danmu.green { background-color: rgba(0, 200, 0, 0.8); }
-    .danmu.yellow { background-color: rgba(255, 200, 0, 0.8); }
-    .danmu.purple { background-color: rgba(180, 0, 255, 0.8); }
-    .danmu.orange { background-color: rgba(255, 140, 0, 0.8); }
+    .danmu.white { 
+      color: #ffffff !important;
+      text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8), 
+                  -1px -1px 1px rgba(0, 0, 0, 0.8), 
+                  1px -1px 1px rgba(0, 0, 0, 0.8), 
+                  -1px 1px 1px rgba(0, 0, 0, 0.8);
+      background: none !important;
+    }
+    .danmu.red { 
+      color: #ff4d4d;
+      text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+      background: none !important;
+    }
+    .danmu.blue { 
+      color: #4da6ff;
+      text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+      background: none !important;
+    }
+    .danmu.green { 
+      color: #4dff4d;
+      text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+      background: none !important;
+    }
+    .danmu.yellow { 
+      color: #ffcc00;
+      text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+      background: none !important;
+    }
+    .danmu.purple { 
+      color: #cc66ff;
+      text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+      background: none !important;
+    }
+    .danmu.orange { 
+      color: #ff9933;
+      text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+      background: none !important;
+    }
+    .danmu.gradient { 
+      background: none !important;
+      background-image: linear-gradient(135deg, #4776E6, #8E54E9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: none;
+    }
   `;
   document.head.appendChild(style);
 }
