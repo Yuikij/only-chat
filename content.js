@@ -16,6 +16,15 @@ const commentStore = new Map();
 let commentListDialog = null;
 // 存储文本重叠信息的映射表
 const textOverlapMap = new Map();
+// 用户状态
+let userState = {
+  isLoggedIn: false,
+  username: '',
+  email: '',
+  avatar: '' // 用户头像的URL或默认图标
+};
+// 登录弹窗实例
+let authDialog = null;
 // 当前页面URL - 注意：每次使用时重新获取，以确保准确性
 function getCurrentPageUrl() {
   return window.location.href;
@@ -510,6 +519,314 @@ function injectStyles() {
       -webkit-text-fill-color: transparent;
       text-shadow: none;
     }
+    
+    /* 认证相关样式 */
+    .auth-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      padding: 0;
+      z-index: 10001;
+      max-width: 400px;
+      width: 90%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .auth-header {
+      background: linear-gradient(135deg, #4776E6, #8E54E9);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 12px 12px 0 0;
+      position: relative;
+    }
+    
+    .auth-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 500;
+      text-align: center;
+    }
+    
+    .auth-tabs {
+      display: flex;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .auth-tab {
+      flex: 1;
+      text-align: center;
+      padding: 15px 0;
+      cursor: pointer;
+      font-weight: 500;
+      color: #888;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .auth-tab.active {
+      color: #4776E6;
+    }
+    
+    .auth-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(135deg, #4776E6, #8E54E9);
+    }
+    
+    .auth-content {
+      padding: 20px;
+    }
+    
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .form-group {
+      position: relative;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+    
+    .form-input:focus {
+      border-color: #4776E6;
+      box-shadow: 0 0 0 2px rgba(71, 118, 230, 0.1);
+      outline: none;
+    }
+    
+    .form-input.error {
+      border-color: #ff4d4d;
+    }
+    
+    .input-icon {
+      position: absolute;
+      top: 50%;
+      right: 15px;
+      transform: translateY(-50%);
+      color: #aaa;
+      font-size: 16px;
+    }
+    
+    .error-message {
+      font-size: 12px;
+      color: #ff4d4d;
+      margin-top: 5px;
+    }
+    
+    .auth-submit {
+      background: linear-gradient(135deg, #4776E6, #8E54E9);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+    
+    .auth-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(71, 118, 230, 0.2);
+    }
+    
+    .auth-footer {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 13px;
+      color: #888;
+    }
+    
+    .auth-link {
+      color: #4776E6;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      margin: 15px 0;
+      color: #888;
+      font-size: 13px;
+    }
+    
+    .auth-divider::before,
+    .auth-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #eee;
+    }
+    
+    .auth-divider::before {
+      margin-right: 10px;
+    }
+    
+    .auth-divider::after {
+      margin-left: 10px;
+    }
+    
+    .social-login {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .social-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .social-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .verification-code {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .send-code-btn {
+      white-space: nowrap;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 0 15px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .send-code-btn:hover:not(:disabled) {
+      background: #eee;
+    }
+    
+    .send-code-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 999;
+      transition: all 0.3s ease;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #4776E6;
+      border: 2px solid transparent;
+    }
+    
+    .user-avatar.logged-in {
+      border-color: #4776E6;
+    }
+    
+    .user-avatar:hover {
+      transform: scale(1.1);
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .user-menu {
+      position: fixed;
+      top: 65px;
+      right: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      width: 200px;
+      z-index: 999;
+      overflow: hidden;
+      animation: slideDown 0.3s ease;
+    }
+    
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .user-menu-header {
+      padding: 15px;
+      background: linear-gradient(135deg, #4776E6, #8E54E9);
+      color: white;
+    }
+    
+    .user-name {
+      font-weight: 500;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .user-email {
+      font-size: 12px;
+      margin: 3px 0 0 0;
+      opacity: 0.8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .user-menu-items {
+      padding: 8px 0;
+    }
+    
+    .user-menu-item {
+      padding: 10px 15px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .user-menu-item:hover {
+      background: #f5f5f5;
+    }
+    
+    .user-menu-item.logout {
+      color: #ff4d4d;
+    }
   `;
   document.head.appendChild(style);
 }
@@ -838,7 +1155,10 @@ function searchAndHighlightText(element, text) {
 // 页面加载完成后初始化
 function initialize() {
   injectStyles();
-  loadSettings();
+loadSettings();
+  
+  // 加载用户状态
+  loadUserState();
   
   // 使用MutationObserver确保在DOM变化后仍能找到并高亮评论文本
   // 这对于动态加载内容的网站特别有用
@@ -944,7 +1264,7 @@ function createCommentDialog(selectedText) {
   // 检查是否与已有评论有重叠
   const overlappingTexts = findOverlappingCommentedTexts(selectedText);
   const hasOverlap = overlappingTexts.length > 0;
-  
+
   commentDialog = document.createElement('div');
   commentDialog.className = 'comment-dialog';
   
@@ -1146,7 +1466,7 @@ function showCommentList(text) {
       <div class="original-text">${text}</div>
       <div class="comments-container">
         ${renderCommentItems(allComments, text)}
-      </div>
+          </div>
       
       <div class="reply-section">
         <h4 class="reply-header">追加评论</h4>
@@ -1337,6 +1657,700 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   else if (message.action === 'openCommentDialog') {
     createCommentDialog(message.selectedText);
   }
+  else if (message.action === 'updateUserState') {
+    // 更新用户状态
+    if (message.userState) {
+      userState = message.userState;
+      console.log('User state updated from popup:', userState);
+    }
+  }
   // 返回 true 表示异步处理消息
   return true;
 });
+
+// 从storage加载用户状态
+function loadUserState() {
+  chrome.storage.local.get(['userState'], (result) => {
+    if (result.userState) {
+      try {
+        userState = JSON.parse(result.userState);
+        console.log('User state loaded:', userState);
+        
+        // 更新用户头像状态
+        updateUserAvatarState();
+      } catch (error) {
+        console.error('Error parsing user state:', error);
+        // 设置为默认未登录状态
+        userState = { isLoggedIn: false, username: '', email: '', avatar: '' };
+      }
+    }
+  });
+}
+
+// 保存用户状态到storage
+function saveUserState() {
+  chrome.storage.local.set({
+    userState: JSON.stringify(userState)
+  }, () => {
+    console.log('User state saved:', userState);
+    if (chrome.runtime.lastError) {
+      console.error('Error saving user state:', chrome.runtime.lastError);
+    }
+  });
+}
+
+// 创建用户头像
+function createUserAvatar() {
+  const avatar = document.createElement('div');
+  avatar.className = 'user-avatar';
+  avatar.innerHTML = '<i>👤</i>';
+  avatar.title = userState.isLoggedIn ? '查看用户菜单' : '登录/注册';
+  
+  // 更新状态
+  updateUserAvatarState(avatar);
+  
+  // 添加点击事件
+  avatar.addEventListener('click', handleAvatarClick);
+  
+  document.body.appendChild(avatar);
+}
+
+// 更新用户头像状态
+function updateUserAvatarState(avatarElement = null) {
+  const avatar = avatarElement || document.querySelector('.user-avatar');
+  if (!avatar) return;
+  
+  if (userState.isLoggedIn) {
+    avatar.classList.add('logged-in');
+    avatar.title = '查看用户菜单';
+    
+    // 更新显示
+    if (userState.avatar) {
+      avatar.innerHTML = `<img src="${userState.avatar}" alt="${userState.username}" style="width: 100%; height: 100%; border-radius: 50%;">`;
+    } else {
+      // 使用用户名首字母作为头像
+      const initial = userState.username ? userState.username.charAt(0).toUpperCase() : '👤';
+      avatar.innerHTML = initial;
+    }
+  } else {
+    avatar.classList.remove('logged-in');
+    avatar.title = '登录/注册';
+    avatar.innerHTML = '<i>👤</i>';
+  }
+}
+
+// 头像点击处理
+function handleAvatarClick() {
+  // 已登录时，显示用户菜单
+  if (userState.isLoggedIn) {
+    showUserMenu();
+  } else {
+    // 未登录时，显示登录/注册对话框
+    showAuthDialog();
+  }
+}
+
+// 显示用户菜单
+function showUserMenu() {
+  // 如果已存在菜单，则移除
+  const existingMenu = document.querySelector('.user-menu');
+  if (existingMenu) {
+    existingMenu.remove();
+    return;
+  }
+  
+  const menu = document.createElement('div');
+  menu.className = 'user-menu';
+  
+  menu.innerHTML = `
+    <div class="user-menu-header">
+      <p class="user-name">${userState.username}</p>
+      <p class="user-email">${userState.email}</p>
+    </div>
+    <div class="user-menu-items">
+      <div class="user-menu-item">
+        <i>⚙️</i> 设置
+      </div>
+      <div class="user-menu-item">
+        <i>📋</i> 我的评论
+      </div>
+      <div class="user-menu-item logout">
+        <i>🚪</i> 退出登录
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(menu);
+  
+  // 添加退出登录点击事件
+  menu.querySelector('.user-menu-item.logout').addEventListener('click', () => {
+    logout();
+    menu.remove();
+  });
+  
+  // 点击页面其他地方关闭菜单
+  document.addEventListener('click', function closeMenuOutside(event) {
+    const avatar = document.querySelector('.user-avatar');
+    if (menu && !menu.contains(event.target) && 
+        avatar && !avatar.contains(event.target)) {
+      menu.remove();
+      document.removeEventListener('click', closeMenuOutside);
+    }
+  });
+  
+  // 禁止事件冒泡
+  menu.addEventListener('click', (event) => {
+    event.stopPropagation();
+  });
+}
+
+// 登出处理
+function logout() {
+  userState = {
+    isLoggedIn: false,
+    username: '',
+    email: '',
+    avatar: ''
+  };
+  
+  // 保存状态
+  saveUserState();
+  
+  // 更新头像状态
+  updateUserAvatarState();
+  
+  // 提示用户
+  showToast('已成功退出登录');
+}
+
+// 显示认证对话框
+function showAuthDialog(initialTab = 'login') {
+  // 如果已存在弹窗，则关闭
+  if (authDialog) {
+    authDialog.remove();
+    authDialog = null;
+  }
+  
+  authDialog = document.createElement('div');
+  authDialog.className = 'auth-dialog';
+  
+  authDialog.innerHTML = `
+    <div class="auth-header">
+      <h3 class="auth-title">欢迎使用评论系统</h3>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab ${initialTab === 'login' ? 'active' : ''}" data-tab="login">登录</div>
+      <div class="auth-tab ${initialTab === 'register' ? 'active' : ''}" data-tab="register">注册</div>
+    </div>
+    <div class="auth-content">
+      <div class="auth-form login-form" style="${initialTab === 'login' ? '' : 'display: none;'}">
+        <div class="form-group">
+          <input type="text" class="form-input" placeholder="邮箱地址" id="login-email">
+          <div class="input-icon">✉️</div>
+          <div class="error-message" id="login-email-error"></div>
+        </div>
+        <div class="form-group">
+          <input type="password" class="form-input" placeholder="密码" id="login-password">
+          <div class="input-icon">🔒</div>
+          <div class="error-message" id="login-password-error"></div>
+        </div>
+        <button class="auth-submit" id="login-btn">登录</button>
+        <div class="auth-footer">
+          <a href="#" class="auth-link forgot-password">忘记密码?</a>
+        </div>
+        <div class="auth-divider">或者</div>
+        <div class="social-login">
+          <div class="social-btn" title="Google登录">G</div>
+          <div class="social-btn" title="GitHub登录">🐱</div>
+          <div class="social-btn" title="微信登录">💬</div>
+        </div>
+      </div>
+      <div class="auth-form register-form" style="${initialTab === 'register' ? '' : 'display: none;'}">
+        <div class="form-group">
+          <input type="text" class="form-input" placeholder="用户名" id="register-username">
+          <div class="input-icon">👤</div>
+          <div class="error-message" id="register-username-error"></div>
+        </div>
+        <div class="form-group">
+          <input type="text" class="form-input" placeholder="邮箱地址" id="register-email">
+          <div class="input-icon">✉️</div>
+          <div class="error-message" id="register-email-error"></div>
+        </div>
+        <div class="form-group verification-code">
+          <input type="text" class="form-input" placeholder="验证码" id="register-code">
+          <button class="send-code-btn" id="send-code-btn">发送验证码</button>
+          <div class="error-message" id="register-code-error"></div>
+        </div>
+        <div class="form-group">
+          <input type="password" class="form-input" placeholder="密码" id="register-password">
+          <div class="input-icon">🔒</div>
+          <div class="error-message" id="register-password-error"></div>
+        </div>
+        <div class="form-group">
+          <input type="password" class="form-input" placeholder="确认密码" id="register-confirm">
+          <div class="input-icon">🔒</div>
+          <div class="error-message" id="register-confirm-error"></div>
+        </div>
+        <button class="auth-submit" id="register-btn">注册</button>
+        <div class="auth-footer">
+          注册即表示您同意我们的<a href="#" class="auth-link">服务条款</a>和<a href="#" class="auth-link">隐私政策</a>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(authDialog);
+  
+  // 切换标签页事件
+  const tabs = authDialog.querySelectorAll('.auth-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      
+      const tabName = tab.dataset.tab;
+      authDialog.querySelector('.login-form').style.display = tabName === 'login' ? 'flex' : 'none';
+      authDialog.querySelector('.register-form').style.display = tabName === 'register' ? 'flex' : 'none';
+    });
+  });
+  
+  // 登录按钮事件
+  const loginBtn = authDialog.querySelector('#login-btn');
+  loginBtn.addEventListener('click', handleLogin);
+  
+  // 注册按钮事件
+  const registerBtn = authDialog.querySelector('#register-btn');
+  registerBtn.addEventListener('click', handleRegister);
+  
+  // 发送验证码按钮事件
+  const sendCodeBtn = authDialog.querySelector('#send-code-btn');
+  sendCodeBtn.addEventListener('click', handleSendVerificationCode);
+  
+  // 关闭弹窗的点击事件
+  document.addEventListener('click', function closeAuthDialogOutside(event) {
+    if (authDialog && !authDialog.contains(event.target)) {
+      authDialog.remove();
+      authDialog = null;
+      document.removeEventListener('click', closeAuthDialogOutside);
+    }
+  });
+  
+  // 阻止弹窗内点击事件冒泡
+  authDialog.addEventListener('click', (event) => {
+    event.stopPropagation();
+  });
+}
+
+// 处理登录
+function handleLogin() {
+  const emailInput = document.querySelector('#login-email');
+  const passwordInput = document.querySelector('#login-password');
+  const emailError = document.querySelector('#login-email-error');
+  const passwordError = document.querySelector('#login-password-error');
+  
+  // 重置错误信息
+  emailError.textContent = '';
+  passwordError.textContent = '';
+  
+  // 获取输入值
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+  
+  // 基本验证
+  let hasError = false;
+  
+  if (!email) {
+    emailError.textContent = '请输入邮箱地址';
+    emailInput.classList.add('error');
+    hasError = true;
+  } else if (!isValidEmail(email)) {
+    emailError.textContent = '请输入有效的邮箱地址';
+    emailInput.classList.add('error');
+    hasError = true;
+  } else {
+    emailInput.classList.remove('error');
+  }
+  
+  if (!password) {
+    passwordError.textContent = '请输入密码';
+    passwordInput.classList.add('error');
+    hasError = true;
+  } else {
+    passwordInput.classList.remove('error');
+  }
+  
+  if (hasError) return;
+  
+  // 模拟登录API调用
+  // 在实际项目中,应该改为调用实际的认证API
+  simulateLoginApi(email, password)
+    .then(response => {
+      if (response.success) {
+        // 更新用户状态
+        userState = {
+          isLoggedIn: true,
+          username: response.data.username,
+          email: email,
+          avatar: response.data.avatar || ''
+        };
+        
+        // 保存状态
+        saveUserState();
+        
+        // 关闭弹窗
+        if (authDialog) {
+          authDialog.remove();
+          authDialog = null;
+        }
+        
+        // 更新头像状态
+        updateUserAvatarState();
+        
+        // 提示用户
+        showToast('登录成功，欢迎回来！');
+      } else {
+        // 显示错误信息
+        if (response.error === 'invalid_credentials') {
+          passwordError.textContent = '邮箱或密码不正确';
+          passwordInput.classList.add('error');
+        } else {
+          passwordError.textContent = response.message || '登录失败，请重试';
+          passwordInput.classList.add('error');
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Login error:', error);
+      passwordError.textContent = '登录失败，请检查网络连接并重试';
+      passwordInput.classList.add('error');
+    });
+}
+
+// 处理注册
+function handleRegister() {
+  const usernameInput = document.querySelector('#register-username');
+  const emailInput = document.querySelector('#register-email');
+  const codeInput = document.querySelector('#register-code');
+  const passwordInput = document.querySelector('#register-password');
+  const confirmInput = document.querySelector('#register-confirm');
+  
+  const usernameError = document.querySelector('#register-username-error');
+  const emailError = document.querySelector('#register-email-error');
+  const codeError = document.querySelector('#register-code-error');
+  const passwordError = document.querySelector('#register-password-error');
+  const confirmError = document.querySelector('#register-confirm-error');
+  
+  // 重置错误信息
+  usernameError.textContent = '';
+  emailError.textContent = '';
+  codeError.textContent = '';
+  passwordError.textContent = '';
+  confirmError.textContent = '';
+  
+  // 获取输入值
+  const username = usernameInput.value.trim();
+  const email = emailInput.value.trim();
+  const code = codeInput.value.trim();
+  const password = passwordInput.value.trim();
+  const confirm = confirmInput.value.trim();
+  
+  // 验证
+  let hasError = false;
+  
+  if (!username) {
+    usernameError.textContent = '请输入用户名';
+    usernameInput.classList.add('error');
+    hasError = true;
+  } else if (username.length < 3) {
+    usernameError.textContent = '用户名至少需要3个字符';
+    usernameInput.classList.add('error');
+    hasError = true;
+  } else {
+    usernameInput.classList.remove('error');
+  }
+  
+  if (!email) {
+    emailError.textContent = '请输入邮箱地址';
+    emailInput.classList.add('error');
+    hasError = true;
+  } else if (!isValidEmail(email)) {
+    emailError.textContent = '请输入有效的邮箱地址';
+    emailInput.classList.add('error');
+    hasError = true;
+  } else {
+    emailInput.classList.remove('error');
+  }
+  
+  if (!code) {
+    codeError.textContent = '请输入验证码';
+    codeInput.classList.add('error');
+    hasError = true;
+  } else if (code.length !== 6 || !/^\d+$/.test(code)) {
+    codeError.textContent = '请输入正确的验证码';
+    codeInput.classList.add('error');
+    hasError = true;
+  } else {
+    codeInput.classList.remove('error');
+  }
+  
+  if (!password) {
+    passwordError.textContent = '请输入密码';
+    passwordInput.classList.add('error');
+    hasError = true;
+  } else if (password.length < 6) {
+    passwordError.textContent = '密码长度至少为6个字符';
+    passwordInput.classList.add('error');
+    hasError = true;
+  } else {
+    passwordInput.classList.remove('error');
+  }
+  
+  if (!confirm) {
+    confirmError.textContent = '请确认密码';
+    confirmInput.classList.add('error');
+    hasError = true;
+  } else if (confirm !== password) {
+    confirmError.textContent = '两次输入的密码不一致';
+    confirmInput.classList.add('error');
+    hasError = true;
+  } else {
+    confirmInput.classList.remove('error');
+  }
+  
+  if (hasError) return;
+  
+  // 模拟注册API调用
+  simulateRegisterApi(username, email, code, password)
+    .then(response => {
+      if (response.success) {
+        // 更新用户状态
+        userState = {
+          isLoggedIn: true,
+          username: username,
+          email: email,
+          avatar: response.data?.avatar || ''
+        };
+        
+        // 保存状态
+        saveUserState();
+        
+        // 关闭弹窗
+        if (authDialog) {
+          authDialog.remove();
+          authDialog = null;
+        }
+        
+        // 更新头像状态
+        updateUserAvatarState();
+        
+        // 提示用户
+        showToast('注册成功，欢迎加入！');
+      } else {
+        // 显示错误信息
+        if (response.error === 'invalid_code') {
+          codeError.textContent = '验证码不正确或已过期';
+          codeInput.classList.add('error');
+        } else if (response.error === 'email_exists') {
+          emailError.textContent = '该邮箱已被注册';
+          emailInput.classList.add('error');
+        } else if (response.error === 'username_exists') {
+          usernameError.textContent = '该用户名已被使用';
+          usernameInput.classList.add('error');
+        } else {
+          confirmError.textContent = response.message || '注册失败，请重试';
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Register error:', error);
+      confirmError.textContent = '注册失败，请检查网络连接并重试';
+    });
+}
+
+// 处理发送验证码
+function handleSendVerificationCode() {
+  const emailInput = document.querySelector('#register-email');
+  const emailError = document.querySelector('#register-email-error');
+  const sendCodeBtn = document.querySelector('#send-code-btn');
+  
+  // 重置错误信息
+  emailError.textContent = '';
+  
+  // 获取输入值
+  const email = emailInput.value.trim();
+  
+  // 验证
+  if (!email) {
+    emailError.textContent = '请输入邮箱地址';
+    emailInput.classList.add('error');
+    return;
+  } else if (!isValidEmail(email)) {
+    emailError.textContent = '请输入有效的邮箱地址';
+    emailInput.classList.add('error');
+    return;
+  } else {
+    emailInput.classList.remove('error');
+  }
+  
+  // 禁用按钮，显示倒计时
+  sendCodeBtn.disabled = true;
+  let countdown = 60;
+  sendCodeBtn.textContent = `${countdown}秒后重新发送`;
+  
+  const timer = setInterval(() => {
+    countdown--;
+    if (countdown <= 0) {
+      clearInterval(timer);
+      sendCodeBtn.disabled = false;
+      sendCodeBtn.textContent = '发送验证码';
+    } else {
+      sendCodeBtn.textContent = `${countdown}秒后重新发送`;
+    }
+  }, 1000);
+  
+  // 模拟发送验证码API调用
+  simulateSendCodeApi(email)
+    .then(response => {
+      if (response.success) {
+        showToast('验证码已发送到您的邮箱');
+      } else {
+        emailError.textContent = response.message || '发送验证码失败';
+        emailInput.classList.add('error');
+        
+        // 重置按钮状态
+        clearInterval(timer);
+        sendCodeBtn.disabled = false;
+        sendCodeBtn.textContent = '重新发送';
+      }
+    })
+    .catch(error => {
+      console.error('Send code error:', error);
+      emailError.textContent = '发送验证码失败，请重试';
+      emailInput.classList.add('error');
+      
+      // 重置按钮状态
+      clearInterval(timer);
+      sendCodeBtn.disabled = false;
+      sendCodeBtn.textContent = '重新发送';
+    });
+}
+
+// 显示Toast提示
+function showToast(message, duration = 3000) {
+  // 移除已存在的toast
+  const existingToast = document.querySelector('.toast-message');
+  if (existingToast) {
+    existingToast.remove();
+  }
+  
+  const toast = document.createElement('div');
+  toast.className = 'toast-message';
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 10002;
+    animation: fadeInUp 0.3s ease;
+  `;
+  
+  document.body.appendChild(toast);
+  
+  // 添加淡入淡出动画
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translate(-50%, 20px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    
+    @keyframes fadeOut {
+      from { opacity: 1; transform: translate(-50%, 0); }
+      to { opacity: 0; transform: translate(-50%, -20px); }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // 设置自动消失
+  setTimeout(() => {
+    toast.style.animation = 'fadeOut 0.3s ease forwards';
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, duration);
+}
+
+// 验证邮箱格式
+function isValidEmail(email) {
+  const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(email);
+}
+
+// 模拟API调用
+function simulateLoginApi(email, password) {
+  return new Promise((resolve, reject) => {
+    // 模拟网络延迟
+    setTimeout(() => {
+      // 演示用途，接受任何以@example.com结尾的邮箱
+      if (email.endsWith('@example.com') && password.length >= 6) {
+        resolve({
+          success: true,
+          data: {
+            username: email.split('@')[0],
+            email: email,
+            avatar: ''
+          }
+        });
+      } else {
+        resolve({
+          success: false,
+          error: 'invalid_credentials',
+          message: '邮箱或密码不正确'
+        });
+      }
+    }, 800);
+  });
+}
+
+function simulateRegisterApi(username, email, code, password) {
+  return new Promise((resolve, reject) => {
+    // 模拟网络延迟
+    setTimeout(() => {
+      // 演示用途，验证码123456总是有效
+      if (code === '123456') {
+        resolve({
+          success: true,
+          data: {
+            username: username,
+            email: email,
+            avatar: ''
+          }
+        });
+      } else {
+        resolve({
+          success: false,
+          error: 'invalid_code',
+          message: '验证码不正确或已过期'
+        });
+      }
+    }, 800);
+  });
+}
+
+function simulateSendCodeApi(email) {
+  return new Promise((resolve, reject) => {
+    // 模拟网络延迟
+    setTimeout(() => {
+      resolve({
+        success: true,
+        message: '验证码已发送，演示用验证码为123456'
+      });
+    }, 800);
+  });
+}
