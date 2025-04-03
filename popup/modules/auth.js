@@ -127,7 +127,7 @@ export async function handleLoginSubmit(e) {
     submitBtn.textContent = '登录中...';
     
     // 调用登录接口
-    const response = await AuthService.login({ email, password });
+    const response = await AuthService.login({ username:email, password });
     
     if (response.success) {
       // 登录成功
@@ -186,7 +186,7 @@ export async function handleRegisterSubmit(e) {
     submitBtn.textContent = '注册中...';
     
     // 调用注册接口
-    const response = await AuthService.register({ email, password, code });
+    const response = await AuthService.register({ username:email, password, code });
     
     if (response.success) {
       // 注册成功
