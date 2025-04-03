@@ -88,72 +88,64 @@
   </div>
   
   <!-- 登录/注册对话框 -->
-  <div id="authDialog" class="auth-dialog" style="display: none;">
+  <div class="auth-dialog" style="display: none;">
     <div class="auth-header">
-      <h3 class="auth-title">用户登录 / 注册</h3>
-      <button id="closeAuthBtn" class="close-auth-btn">&times;</button>
+      <h2 class="auth-title">登录 / 注册</h2>
+      <button class="close-auth-btn">&times;</button>
     </div>
     <div class="auth-tabs">
       <div class="auth-tab active" data-tab="login">登录</div>
       <div class="auth-tab" data-tab="register">注册</div>
     </div>
     <div class="auth-content">
-      <div class="auth-form login-form">
+      <!-- 登录表单 -->
+      <form id="login-form" class="auth-form">
         <div class="form-group">
-          <input type="text" class="form-input" placeholder="邮箱地址" id="login-email">
-          <div class="input-icon"><i class="fas fa-envelope"></i></div>
+          <input type="email" class="form-input" id="login-email" placeholder="邮箱" required>
+          <div class="input-icon">
+            <i class="fas fa-envelope"></i>
+          </div>
           <div class="error-message" id="login-email-error"></div>
         </div>
         <div class="form-group">
-          <input type="password" class="form-input" placeholder="密码" id="login-password">
-          <div class="input-icon"><i class="fas fa-lock"></i></div>
+          <input type="password" class="form-input" id="login-password" placeholder="密码" required>
+          <div class="input-icon">
+            <i class="fas fa-lock"></i>
+          </div>
           <div class="error-message" id="login-password-error"></div>
         </div>
-        <button class="auth-submit" id="login-btn">登录</button>
-        <div class="auth-footer">
-          <a href="#" class="auth-link forgot-password">忘记密码?</a>
-        </div>
-        <div class="auth-divider">或者</div>
-        <div class="social-login">
-          <div class="social-btn" title="Google登录"><i class="fab fa-google"></i></div>
-          <div class="social-btn" title="GitHub登录"><i class="fab fa-github"></i></div>
-          <div class="social-btn" title="微信登录"><i class="fab fa-weixin"></i></div>
-        </div>
-      </div>
-      <div class="auth-form register-form" style="display: none;">
+        <button type="submit" class="auth-submit">登录</button>
+      </form>
+      
+      <!-- 注册表单 -->
+      <form id="register-form" class="auth-form" style="display: none;">
         <div class="form-group">
-          <input type="text" class="form-input" placeholder="用户名" id="register-username">
-          <div class="input-icon"><i class="fas fa-user"></i></div>
-          <div class="error-message" id="register-username-error"></div>
-        </div>
-        <div class="form-group">
-          <input type="text" class="form-input" placeholder="邮箱地址" id="register-email">
-          <div class="input-icon"><i class="fas fa-envelope"></i></div>
+          <input type="email" class="form-input" id="register-email" placeholder="邮箱" required>
+          <div class="input-icon">
+            <i class="fas fa-envelope"></i>
+          </div>
           <div class="error-message" id="register-email-error"></div>
         </div>
-        <div class="form-group verification-code">
-          <input type="text" class="form-input" placeholder="验证码" id="register-code">
-          <button class="send-code-btn" id="send-code-btn">发送验证码</button>
-          <div class="error-message" id="register-code-error"></div>
-        </div>
         <div class="form-group">
-          <input type="password" class="form-input" placeholder="密码" id="register-password">
-          <div class="input-icon"><i class="fas fa-lock"></i></div>
+          <input type="password" class="form-input" id="register-password" placeholder="密码" required>
+          <div class="input-icon">
+            <i class="fas fa-lock"></i>
+          </div>
           <div class="error-message" id="register-password-error"></div>
         </div>
         <div class="form-group">
-          <input type="password" class="form-input" placeholder="确认密码" id="register-confirm">
-          <div class="input-icon"><i class="fas fa-lock"></i></div>
-          <div class="error-message" id="register-confirm-error"></div>
+          <div class="verification-code">
+            <input type="text" class="form-input" id="verification-code" placeholder="验证码" required>
+            <button type="button" class="send-code-btn" id="send-code-btn">发送验证码</button>
+          </div>
+          <div class="error-message" id="verification-code-error"></div>
         </div>
-        <button class="auth-submit" id="register-btn">注册</button>
-        <div class="auth-footer">
-          注册即表示您同意我们的<a href="#" class="auth-link">服务条款</a>和<a href="#" class="auth-link">隐私政策</a>
-        </div>
-      </div>
+        <button type="submit" class="auth-submit">注册</button>
+      </form>
     </div>
   </div>
   
-  <script src="popup.js"></script>
+  <!-- 将普通脚本改为模块脚本 -->
+  <script src="popup.js" type="module"></script>
 </body>
 </html>

@@ -1,3 +1,90 @@
+import AuthService from './services/auth.js';
+import Toast from './utils/toast.js';
+
+/**
+ * 更新用户界面
+ */
+function updateUserUI() {
+  const isLoggedIn = AuthService.isLoggedIn();
+  const user = AuthService.getUserFromStorage();
+  
+  const userSection = document.querySelector('.user-section');
+  
+  if (userSection) {
+    if (isLoggedIn && user) {
+      // 已登录状态
+      userSection.innerHTML = `
+        <div class="user-info">
+          <div class="user-avatar">${user.name ? user.name.charAt(0).toUpperCase() : 'U'}</div>
+          <div class="user-details">
+            <div class="username">${user.name || '用户'}</div>
+            <div class="user-email">${user.email}</div>
+          </div>
+        </div>
+        <button class="logout-btn">退出登录</button>
+      `;
+      
+      // 添加登出事件
+      document.querySelector('.logout-btn').addEventListener('click', handleLogout);
+    } else {
+      // 未登录状态
+      userSection.innerHTML = `
+        <div class="guest-view">
+          <button class="auth-btn">
+            <i class="fas fa-user-circle"></i>
+            登录 / 注册
+          </button>
+        </div>
+      `;
+      
+      // 添加登录对话框事件
+      document.querySelector('.auth-btn').addEventListener('click', openAuthDialog);
+    }
+  }
+}
+
+/**
+ * 处理登出
+ */
+function handleLogout() {
+  AuthService.logout();
+  updateUserUI();
+  Toast.info('已成功登出');
+}
+
+/**
+ * 验证邮箱格式
+ * @param {string} email - 邮箱地址
+ * @returns {boolean} 是否合法
+ */
+function validateEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+}
+
+/**
+ * 打开认证对话框
+ */
+function openAuthDialog() {
+  const authDialog = document.querySelector('.auth-dialog');
+  if (authDialog) {
+    authDialog.style.display = 'flex';
+    
+    // 默认显示登录表单
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.auth-tab[data-tab="login"]').classList.add('active');
+    document.getElementById('login-form').style.display = 'block';
+    document.getElementById('register-form').style.display = 'none';
+    
+    // 清空表单
+    document.getElementById('login-form').reset();
+    document.getElementById('register-form').reset();
+    
+    // 清除错误信息
+    document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const toggleButton = document.getElementById('toggleChat');
   const danmuToggle = document.getElementById('toggleDanmu');
@@ -10,11 +97,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const guestView = document.getElementById('guestView');
   const userView = document.getElementById('userView');
   const logoutBtn = document.getElementById('logoutBtn');
-  const authDialog = document.getElementById('authDialog');
-  const closeAuthBtn = document.getElementById('closeAuthBtn');
+  const authDialog = document.querySelector('.auth-dialog');
+  const closeAuthBtn = document.querySelector('.close-auth-btn');
   const authTabs = document.querySelectorAll('.auth-tab');
-  const loginForm = document.querySelector('.login-form');
-  const registerForm = document.querySelector('.register-form');
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
   
   let danmuEnabled = false;
   let userState = {
@@ -70,32 +157,6 @@ document.addEventListener('DOMContentLoaded', function() {
   
   getCurrentState();
   
-  // 更新用户界面
-  function updateUserUI() {
-    if (userState.isLoggedIn) {
-      guestView.style.display = 'none';
-      userView.style.display = 'block';
-      
-      // 更新用户头像和信息
-      const userAvatar = document.getElementById('userAvatar');
-      const username = document.getElementById('username');
-      const userEmail = document.getElementById('userEmail');
-      
-      if (userState.avatar) {
-        userAvatar.innerHTML = `<img src="${userState.avatar}" style="width: 100%; height: 100%; border-radius: 50%;">`;
-      } else {
-        const initial = userState.username ? userState.username.charAt(0).toUpperCase() : 'U';
-        userAvatar.textContent = initial;
-      }
-      
-      username.textContent = userState.username || '用户';
-      userEmail.textContent = userState.email || '';
-    } else {
-      guestView.style.display = 'block';
-      userView.style.display = 'none';
-    }
-  }
-  
   // 添加按钮点击波纹效果
   const addRippleEffect = (button) => {
     button.addEventListener('click', function(e) {
@@ -124,6 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
   addRippleEffect(logoutBtn);
   
   toggleButton.addEventListener('click', async () => {
+    console.log('尝试打开侧边栏');
     // 打开侧边栏
     try {
       // 获取当前窗口
@@ -219,47 +281,58 @@ document.addEventListener('DOMContentLoaded', function() {
   // ===== 用户认证相关 =====
   
   // 登录按钮点击显示登录/注册对话框
-  loginBtn.addEventListener('click', () => {
-    authDialog.style.display = 'flex';
-  });
+  if (loginBtn) {
+    loginBtn.addEventListener('click', () => {
+      openAuthDialog();
+    });
+  }
   
-  // 关闭认证对话框
-  closeAuthBtn.addEventListener('click', () => {
-    authDialog.style.display = 'none';
-  });
+  // 关闭登录对话框
+  if (closeAuthBtn) {
+    closeAuthBtn.addEventListener('click', () => {
+      closeAuthDialog();
+    });
+  }
   
-  // 注册标签页切换
-  authTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      // 移除所有标签页的活动状态
-      authTabs.forEach(t => t.classList.remove('active'));
+  // 标签切换事件处理
+  document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      // 移除所有标签的active类
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
       
-      // 添加当前标签页的活动状态
-      tab.classList.add('active');
+      // 添加当前标签的active类
+      this.classList.add('active');
       
-      // 显示对应的表单
-      const tabName = tab.dataset.tab;
+      // 切换表单显示
+      const tabName = this.getAttribute('data-tab');
       if (tabName === 'login') {
-        loginForm.style.display = 'flex';
-        registerForm.style.display = 'none';
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('register-form').style.display = 'none';
       } else {
-        loginForm.style.display = 'none';
-        registerForm.style.display = 'flex';
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('register-form').style.display = 'block';
       }
     });
   });
   
-  // 登录按钮点击处理
-  document.getElementById('login-btn').addEventListener('click', handleLogin);
+  // 表单事件处理
+  if (loginForm) {
+    loginForm.addEventListener('submit', handleLoginSubmit);
+  }
   
-  // 注册按钮点击处理
-  document.getElementById('register-btn').addEventListener('click', handleRegister);
+  if (registerForm) {
+    registerForm.addEventListener('submit', handleRegisterSubmit);
+  }
   
-  // 发送验证码按钮点击处理
-  document.getElementById('send-code-btn').addEventListener('click', handleSendVerificationCode);
+  const sendCodeBtn = document.getElementById('send-code-btn');
+  if (sendCodeBtn) {
+    sendCodeBtn.addEventListener('click', sendVerificationCode);
+  }
   
   // 退出登录按钮点击处理
-  logoutBtn.addEventListener('click', handleLogout);
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', handleLogout);
+  }
   
   // 处理登录
   function handleLogin() {
@@ -317,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
           saveUserState();
           
           // 关闭弹窗
-          authDialog.style.display = 'none';
+          closeAuthDialog();
           
           // 更新UI
           updateUserUI();
@@ -451,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function() {
           saveUserState();
           
           // 关闭弹窗
-          authDialog.style.display = 'none';
+          closeAuthDialog();
           
           // 更新UI
           updateUserUI();
@@ -548,25 +621,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
 
-  // 处理退出登录
-  function handleLogout() {
-    userState = {
-      isLoggedIn: false,
-      username: '',
-      email: '',
-      avatar: ''
-    };
-    
-    // 保存状态
-    saveUserState();
-    
-    // 更新UI
-    updateUserUI();
-    
-    // 提示用户
-    showToast('已成功退出登录');
-  }
-  
   // 保存用户状态
   function saveUserState() {
     chrome.storage.local.set({
@@ -715,4 +769,229 @@ document.addEventListener('DOMContentLoaded', function() {
       }, 800);
     });
   }
+
+  // 初始化认证相关功能
+  function initAuth() {
+    // 初始化时更新用户界面
+    updateUserUI();
+    
+    // 如果存在登录表单，添加提交事件
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+      loginForm.addEventListener('submit', handleLoginSubmit);
+    }
+    
+    // 如果存在注册表单，添加提交事件
+    const registerForm = document.getElementById('register-form');
+    if (registerForm) {
+      registerForm.addEventListener('submit', handleRegisterSubmit);
+    }
+    
+    // 如果存在发送验证码按钮，添加点击事件
+    const sendCodeBtn = document.getElementById('send-code-btn');
+    if (sendCodeBtn) {
+      sendCodeBtn.addEventListener('click', sendVerificationCode);
+    }
+    
+    // 标签切换事件
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        // 移除所有标签的active类
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        
+        // 添加当前标签的active类
+        this.classList.add('active');
+        
+        // 切换表单显示
+        const tabName = this.getAttribute('data-tab');
+        if (tabName === 'login') {
+          document.getElementById('login-form').style.display = 'block';
+          document.getElementById('register-form').style.display = 'none';
+        } else {
+          document.getElementById('login-form').style.display = 'none';
+          document.getElementById('register-form').style.display = 'block';
+        }
+      });
+    });
+    
+    // 关闭对话框按钮事件
+    const closeAuthBtn = document.querySelector('.close-auth-btn');
+    if (closeAuthBtn) {
+      closeAuthBtn.addEventListener('click', closeAuthDialog);
+    }
+  }
+
+  /**
+   * 处理登录表单提交
+   * @param {Event} e - 表单提交事件
+   */
+  async function handleLoginSubmit(e) {
+    e.preventDefault();
+    
+    // 获取表单数据
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    
+    // 简单验证
+    if (!validateEmail(email)) {
+      document.getElementById('login-email-error').textContent = '请输入有效的邮箱地址';
+      return;
+    }
+    
+    if (!password) {
+      document.getElementById('login-password-error').textContent = '请输入密码';
+      return;
+    }
+    
+    // 清除错误提示
+    document.querySelectorAll('#login-form .error-message').forEach(el => el.textContent = '');
+    
+    try {
+      // 显示加载状态
+      const submitBtn = e.target.querySelector('.auth-submit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '登录中...';
+      
+      // 调用登录接口
+      const response = await AuthService.login({ email, password });
+      
+      if (response.success) {
+        // 登录成功
+        Toast.success('登录成功');
+        closeAuthDialog();
+        updateUserUI();
+      } else {
+        // 登录失败
+        Toast.error(response.message || '登录失败，请重试');
+      }
+    } catch (error) {
+      Toast.error(error.message || '网络错误，请稍后重试');
+    } finally {
+      // 恢复按钮状态
+      const submitBtn = e.target.querySelector('.auth-submit');
+      submitBtn.disabled = false;
+      submitBtn.textContent = '登录';
+    }
+  }
+
+  /**
+   * 处理注册表单提交
+   * @param {Event} e - 表单提交事件
+   */
+  async function handleRegisterSubmit(e) {
+    e.preventDefault();
+    
+    // 获取表单数据
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    const code = document.getElementById('verification-code').value;
+    
+    // 简单验证
+    if (!validateEmail(email)) {
+      document.getElementById('register-email-error').textContent = '请输入有效的邮箱地址';
+      return;
+    }
+    
+    if (!password || password.length < 6) {
+      document.getElementById('register-password-error').textContent = '密码至少需要6个字符';
+      return;
+    }
+    
+    if (!code) {
+      document.getElementById('verification-code-error').textContent = '请输入验证码';
+      return;
+    }
+    
+    // 清除错误提示
+    document.querySelectorAll('#register-form .error-message').forEach(el => el.textContent = '');
+    
+    try {
+      // 显示加载状态
+      const submitBtn = e.target.querySelector('.auth-submit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '注册中...';
+      
+      // 调用注册接口
+      const response = await AuthService.register({ email, password, code });
+      
+      if (response.success) {
+        // 注册成功
+        Toast.success('注册成功');
+        closeAuthDialog();
+        updateUserUI();
+      } else {
+        // 注册失败
+        Toast.error(response.message || '注册失败，请重试');
+      }
+    } catch (error) {
+      Toast.error(error.message || '网络错误，请稍后重试');
+    } finally {
+      // 恢复按钮状态
+      const submitBtn = e.target.querySelector('.auth-submit');
+      submitBtn.disabled = false;
+      submitBtn.textContent = '注册';
+    }
+  }
+
+  /**
+   * 发送验证码
+   */
+  async function sendVerificationCode() {
+    const email = document.getElementById('register-email').value;
+    
+    if (!validateEmail(email)) {
+      document.getElementById('register-email-error').textContent = '请输入有效的邮箱地址';
+      return;
+    }
+    
+    const sendCodeBtn = document.getElementById('send-code-btn');
+    
+    // 禁用按钮并倒计时
+    sendCodeBtn.disabled = true;
+    let countDown = 60;
+    sendCodeBtn.textContent = `${countDown}秒后重试`;
+    
+    const timer = setInterval(() => {
+      countDown--;
+      if (countDown <= 0) {
+        clearInterval(timer);
+        sendCodeBtn.disabled = false;
+        sendCodeBtn.textContent = '发送验证码';
+      } else {
+        sendCodeBtn.textContent = `${countDown}秒后重试`;
+      }
+    }, 1000);
+    
+    try {
+      // 调用发送验证码接口
+      const response = await AuthService.sendVerificationCode(email);
+      
+      if (response.success) {
+        Toast.success('验证码已发送到您的邮箱');
+      } else {
+        Toast.error(response.message || '发送验证码失败，请重试');
+        clearInterval(timer);
+        sendCodeBtn.disabled = false;
+        sendCodeBtn.textContent = '发送验证码';
+      }
+    } catch (error) {
+      Toast.error(error.message || '网络错误，请稍后重试');
+      clearInterval(timer);
+      sendCodeBtn.disabled = false;
+      sendCodeBtn.textContent = '发送验证码';
+    }
+  }
+
+  /**
+   * 关闭认证对话框
+   */
+  function closeAuthDialog() {
+    const authDialog = document.querySelector('.auth-dialog');
+    if (authDialog) {
+      authDialog.style.display = 'none';
+    }
+  }
+
+  // 初始化认证功能
+  initAuth();
 });
