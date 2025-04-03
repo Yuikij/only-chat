@@ -12,13 +12,14 @@ export function updateUserUI() {
   
   if (userSection) {
     if (isLoggedIn && user) {
+      console.log("user",user)
       // 已登录状态
       userSection.innerHTML = `
         <div class="user-info">
-          <div class="user-avatar">${user.name ? user.name.charAt(0).toUpperCase() : 'U'}</div>
+          <div class="user-avatar">${user.username ? user.username.charAt(0).toUpperCase() : 'U'}</div>
           <div class="user-details">
-            <div class="username">${user.name || '用户'}</div>
-            <div class="user-email">${user.email}</div>
+            <div class="username">${user.username || '用户'}</div>
+            <div class="user-email">${user.username}</div>
           </div>
         </div>
         <button class="logout-btn">退出登录</button>

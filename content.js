@@ -1317,6 +1317,7 @@ function createCommentDialog(selectedText) {
       // 保存评论 - 使用当前URL，不是初始化时的URL
       const currentUrl = getCurrentPageUrl();
       // 保存评论并获取可能合并后的文本
+      console.log("发布评论",selectedText,comment,domPath,currentUrl)
       const finalText = saveComment(selectedText, comment, domPath, currentUrl);
       
       // 如果文本被合并了，使用合并后的文本进行高亮
