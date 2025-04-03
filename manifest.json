@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Only Chat",
   "version": "1.0",
-  "description": "这是一个 Chrome 扩展示例",
+  "description": "随时冲浪，随时交流",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
